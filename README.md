@@ -1,5 +1,7 @@
 # GestorTareas
 
+    Gestor de tareas creado por Alejandro y Marisa
+
 ## Para tema de logs Mirar el proyecto de alex
 
 - fs
