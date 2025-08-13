@@ -9,6 +9,10 @@ const path = require("path");
 const AppError = require("./AppError");
 const utils = require("./utils/Errores");
 const logger = require("./logs/logger");
+const authRouter = require("./core/auth/auth.routes");
+const tasksRouter = require("./core/tasks/taks.routes");
+const sequelize = require('./modules/database/auth.database');
+
 
 // Configuración de la aplicación
 app.use(express.json())
@@ -35,6 +39,7 @@ const corsOptions = {
             callback(null, false);
         }
     },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Métodos permitidos
     credentials: true
 }
 app.use(cors(corsOptions));
@@ -68,9 +73,15 @@ app.use((err, req, res, next) => {
     res.status(status).send(message);
 })
 
+
+// Importar las rutas
+app.use("/auth", authRouter);
+//app.use("/tasks", tasksRouter);
+
 // Para poder inicializar la aplicación en modo HTTPS, es necesario tener los certificados SSL
 // en la carpeta "certificados" y definir las variables de entorno HTTPS, cert.key y cert.crt
 // Si no se tienen los certificados, se puede iniciar la aplicación en modo HTTP sin problemas
+
 if (process.env.HTTPS === "true") {
     const optionsHTTPS = {
         key: fs.readFileSync("certificados/cert.key"),
@@ -85,7 +96,8 @@ if (process.env.HTTPS === "true") {
             ":" + port
         );
     });
-} else
+}
+else {
     http.createServer(app).listen(port, () => {
         console.log("Servidor HTTP escuchando en puerto " + port);
         console.log(
@@ -93,5 +105,14 @@ if (process.env.HTTPS === "true") {
             (process.env.HOST ? process.env.HOST : "localhost") +
             ":" + port
         );
+    });
+}
+
+sequelize.sync() // Crea todas las tablas si no existen
+    .then(() => {
+        console.log('Base de datos y tablas sincronizadas');
+    })
+    .catch((err) => {
+        console.error('Error al sincronizar la base de datos:', err);
     });
 
